@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<!--Name: Thomas Kiley, thomas_kiley1@student.uml.edu
+    Computer Science Major, Umass Lowell
+    Comp.4610, GUI Programming I
+    Created 12/9/2017
+    Last updated by tk 12/9/2017
+  -->
+
+
+<html lang="en">
+ <head id='hd'>
+        <title>Final</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.3.26/jquery.form-validator.min.js"></script>
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/camanjs/4.1.2/caman.full.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"></script>
+	<div class="jumbotron text-center">
+        <h1 id="head">Photolio</h1>
+        <p id="msg">The online photo portfolio</p>
+        </div>
+	<div class="navbar">
+	  <a href="#"></a>
+	  <a href="#">Photolio</a>
+	  <a href="#" id='lgout' style="visibility:hidden"  onclick="reload()">Logout</a>
+	</div>
+
+</head>
+<style>
+	.navbar{
+		overflow: hidden;
+  		background-color: #333;
+  		position: fixed;
+  		top: 0;
+		width: 100%;
+	}
+	fieldset {
+		display: block;	
+	}
+	canvas {
+		padding-left: 0;
+	    	padding-right: 0;
+		margin-left: auto;
+	    	margin-right: auto;
+		display: block;
+    
+	}
+	body {
+		border 2px solid black;
+		display: block;
+		background: light gray;
+	}
+	img {
+		padding-bottom: 2cm;
+		padding:1px;
+   		border:1px solid #021a40;
+   		background-color:#ff0;
+	}
+	.ftr {
+	  right: 0;
+	  bottom: 0;
+	  left: 0;
+	  padding: 1rem;
+	  background-color: #efefef;
+	  text-align: center;
+	}
+</style>
+<body onload="getUsrs()">
+<div id="login" align="center">
+<fieldset>
+	<legend>Login</legend>
+	<input id='username' type='text' placeholder="Enter username"></input><br><br>
+	<input id='password' type='password' placeholder="Enter password" /><br><br>
+	<button type='button' class="btn-lg.round"  onclick="Login()">Login</button><br><br>
+	First time? Enter a username and a password and click here.<br>
+	<button type='button' onclick="signUp()">Sign Up</button>
+</fieldset>
+</div>
+</body>
+
+<body id="bdy" style="padding-bottom: 50px;">
+	<div id="bdy2" style="visibility:hidden">
+	<div id='bdy1'></div>
+	<canvas id="myCanvas" width="350" height="300"></canvas>
+	<br>
+	<a href="https://www.facebook.com" id='share-fb' class="fa fa-facebook">share</a>
+	<br>
+	<a href="https://www.twitter.com" id='share-twtr' class="fa fa-twitter">share</a>
+	<br>Brightness
+	<div id='bSlider'></div>
+	<br>Contrast
+	<div id='cSlider'></div>
+	<br>Hue
+	<div id='gSlider'></div>
+	<fieldset>
+        	<legend>Upload Photos</legend>
+        	<input id="image-file" type="file" onchange="upload(this);"/>
+        	<button type="button"  onclick="delete_image()">Delete Image</button>
+        	<button type="button" id='btn-download' onclick="saveImage()">Save Image</button><br>
+		<a href="" id="download" download="canvasexport.png"></a>
+	</fieldset><br>
+	<h2 style="text-align:center;">Photo Gallery</h2>
+	</div>
+	</div>
+	<footer class='ftr'id='ftr'>
+		<p> <strong>Photolio</strong><br></p>
+	</footer>
+	
+</body>
+
+<script>
+function reload() {
+location.reload();
+};
+var usrs = []
+var selected_image;
+var current_user;
+function saveImage() {
+var canvas = document.getElementById('myCanvas');
+var img = canvas.toDataURL("image/png;base64;");
+            anchor = document.getElementById("download");
+            anchor.href = img;
+            anchor.click();
+var button = document.getElementById('btn-download');
+var dataURL = canvas.toDataURL('image/png');
+button.href = dataURL;
+var link = document.createElement('a');
+link.download = "test.png";
+link.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");;
+link.click();
+}
+// Loads all existing users into an array to be used for login.
+function getUsrs(){
+
+  $.ajax({
+    url:'users.txt',
+    success: function (data){
+      //parse your data here
+      data = data.split('\n')
+      for(i = 0; i<data.length; i++) {
+	usrs.push(data[i]);
+	}
+    }
+  });
+}
+// This function validates the user login input
+function Login() {
+//getUsrs();
+var user = document.getElementById('username').value;
+var pass = document.getElementById('password').value;
+current_user = user;
+tst = user+pass;
+for( i = 0; i <usrs.length; i++ ) {
+    if(tst==usrs[i]) {
+	  load();
+	  document.getElementById('head').innerHTML='Hello '+ user +'.';
+	  document.getElementById('msg').innerHTML = 'Welcome to your personal Photolio';
+	  return;
+	}
+  }
+alert("Incorrect Login.");
+};
+// This function creates the new user profile
+function signUp() {
+var user = document.getElementById('username').value;
+var pass = document.getElementById('password').value;
+if(!user || !pass) {
+	alert("Username and Password must both be at least one character.");
+	return;
+}
+current_user = user;
+tst = user+pass;
+usrs = usrs + tst;
+// This call adds the new user to the database
+$.ajax({
+  type: 'POST',
+  url: 'save.php', //script that will write the data
+  data: {tst:tst} //data passed in dict/array format
+});
+document.getElementById('head').innerHTML='Hello '+ user +'.';
+document.getElementById('msg').innerHTML = 'Welcome to your personal Photolio';
+
+load();
+}
+// This function initializes the landing page.  It loads all the images and 
+// gets rid of the login page
+function load(){
+document.getElementById('lgout').style.visibility="visible";
+document.getElementById('bdy2').style.visibility="visible";
+document.getElementById('login').style.visibility="hidden";
+document.getElementById('ftr').style.visibility='hidden';
+var dir ='/usr/cs/2019/tkiley1/public_html/'+current_user; 
+var bdy = document.getElementById('bdy');
+var fileextension = ".";
+var counter = 0;
+var tmp = current_user + '/';
+// This call fetches all the images from the user's folder
+$.ajax({
+    url: tmp,
+    success: function (data) {
+        //List all .png file names in the page
+        $(data).find("a:contains(" + fileextension + ")").each(function () {
+            console.log(this);
+	    var fname = this.href.replace("http://weblab.cs.uml.edu/~tkiley1/","");
+	    var filename = tmp + fname
+	   $("body").append("<img class=thumbnail  onclick=set_selected(this) id='" + fname + "'  src='" + filename + "' hspace=10>");
+	   document.getElementById(fname).style.height = '300px';
+           document.getElementById(fname).style.width = '350px';
+        });
+    }
+});
+};
+//This function handles changing the brightness of the selected image
+function changeBrightness(num) {
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+	var cs = document.getElementById(selected_image);
+	canvas.setAttribute('style', 'filter:brightness(' + num + ')');
+};
+// This function will delete the selected image.
+function delete_image() {
+	sorc = document.getElementById(selected_image);
+	pth = sorc.src;
+	// This call will delete the image from the user's folder
+	$.ajax({
+	   url: 'remove.php',
+	   type: 'post',
+	   data: {path: pth, name: current_user},
+	   success: function(response){
+	   sorc.parentNode.removeChild(sorc);
+	    }
+	  }); 
+};
+// This function sets the selected image when clicked.
+function set_selected(sender) {
+	// Need to delete old and create new canvas with each selection
+	var bdy = document.getElementById("myCanvas");
+	bdy.parentNode.removeChild(bdy);
+	bdy = document.getElementById("bdy1");
+	var c = document.createElement('canvas');
+	c.setAttribute('width','350');
+	c.setAttribute('id','myCanvas');
+	c.setAttribute('height','300');
+	c.setAttribute('margin-left','auto');
+	c.setAttribute('margin-right','auto');
+	bdy.appendChild(c);
+	document.getElementById('myCanvas').removeAttribute("style");
+	cs = document.getElementById(selected_image);
+	if(cs)
+		cs.style.border='';
+	selected_image = sender.id;
+	cs = document.getElementById(sender.id);
+	cs.style.border='2px solid #E8272C';
+	var canvas = document.getElementById('myCanvas');
+	var context = canvas.getContext('2d');
+	context.drawImage(cs,0,0,cs.width,cs.height);
+};
+//changes  contrast
+function changeContrast(contrast) {  
+
+Caman("#myCanvas", function () {
+  this.contrast(contrast).render();
+});
+}
+//changes hue
+function changeHue(hue) {
+Caman("#myCanvas", function () {
+  this.hue(hue).render();
+});
+}
+// This initializes the sliders used for image editing
+$(document).ready(function() {
+$( "#bSlider" ).slider({
+      range: "max",
+      min: 0.00,
+      max: 10.00,
+      value: 1.00,
+      step: 0.05,
+      slide: function( event, ui ) {
+        changeBrightness($("#bSlider").slider("value"));
+      }
+    });
+$( "#cSlider" ).slider({
+      range: "max",
+      min: -1,
+      max: 1,
+      value: 0.00,
+      step: 0.01,
+      slide: function( event, ui ) {
+        changeContrast($("#cSlider").slider("value"));
+      }
+    });
+$( "#gSlider" ).slider({
+      range: "max",
+      min: 0,
+      max: 2,
+      value: 0.00,
+      step: 0.01,
+      slide: function( event, ui ) {
+        changeHue($("#gSlider").slider("value"));
+      }
+    });
+
+
+
+});
+// this function is responsible for uploading new images 
+function upload(input) {
+    if (input.files && input.files[0]) {
+            var reader = new FileReader();
+	    var img = document.createElement('img');
+	    var frm = new FormData();
+	    //Need to pass the current user to the php script in json format
+	    var n = { "uname" : current_user };
+	    n = JSON.stringify(n);
+	    frm.append('image-file', input.files[0]);
+	    // This call puts the image in the user's folder
+	    $.ajax({
+        	url: "upload.php?"+ current_user, // this makes current_user accessible in the php using $_GET
+        	type: "POST",
+        	data: frm,
+        	processData: false,
+        	contentType: false,
+        	success: function(data){
+        	}
+	    });
+
+            reader.onload = function (e) {
+		img.src = e.target.result;
+		img.style.height = '300px';
+		img.style.width = '350px'
+		img.setAttribute('onclick', 'set_selected(this)');
+		img.setAttribute('id',img.src);
+            };
+	document.getElementById('bdy').appendChild(img);
+
+            reader.readAsDataURL(input.files[0]);
+        }
+
+};
+
+</script>
+
